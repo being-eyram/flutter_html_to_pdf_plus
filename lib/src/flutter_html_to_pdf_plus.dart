@@ -41,6 +41,31 @@ class FlutterHtmlToPdf {
     );
   }
 
+  /// Creates PDF Document from HTML content and returns [Uint8List]
+  /// Can throw a [PlatformException] or (unlikely) a [MissingPluginException] converting html to pdf
+  static Future<Uint8List> convertFromHtmlContentBytes({
+    required String content,
+    required PrintPdfConfiguration configuration,
+  }) async {
+    final File temporaryCreatedHtmlFile =
+        await FileUtils.createFileWithStringContent(
+      content,
+      configuration.htmlFilePath,
+    );
+    await FileUtils.appendStyleTagToHtmlFile(temporaryCreatedHtmlFile.path);
+
+    final String generatedPdfFilePath = await _convertFromHtmlFilePath(
+      temporaryCreatedHtmlFile.path,
+      configuration.printSize,
+      configuration.printOrientation,
+      configuration.margins,
+    );
+
+    temporaryCreatedHtmlFile.delete();
+
+    return FileUtils.readAndDeleteOriginalFile(generatedPdfFilePath);
+  }
+
   /// Creates PDF Document from File that contains HTML content
   /// Can throw a [PlatformException] or (unlikely) a [MissingPluginException] converting html to pdf
   static Future<File> convertFromHtmlFile({
@@ -62,6 +87,23 @@ class FlutterHtmlToPdf {
     );
   }
 
+  /// Creates PDF Document from File that contains HTML content and returns [Uint8List]
+  /// Can throw a [PlatformException] or (unlikely) a [MissingPluginException] converting html to pdf
+  static Future<Uint8List> convertFromHtmlFileBytes({
+    required File htmlFile,
+    required PrintPdfConfiguration configuration,
+  }) async {
+    await FileUtils.appendStyleTagToHtmlFile(htmlFile.path);
+    final String generatedPdfFilePath = await _convertFromHtmlFilePath(
+      htmlFile.path,
+      configuration.printSize,
+      configuration.printOrientation,
+      configuration.margins,
+    );
+
+    return FileUtils.readAndDeleteOriginalFile(generatedPdfFilePath);
+  }
+
   /// Creates PDF Document from path to File that contains HTML content
   /// Can throw a [PlatformException] or (unlikely) a [MissingPluginException] converting html to pdf
   static Future<File> convertFromHtmlFilePath({
@@ -81,6 +123,23 @@ class FlutterHtmlToPdf {
       configuration.targetDirectory,
       configuration.targetName,
     );
+  }
+
+  /// Creates PDF Document from path to File that contains HTML content and returns [Uint8List]
+  /// Can throw a [PlatformException] or (unlikely) a [MissingPluginException] converting html to pdf
+  static Future<Uint8List> convertFromHtmlFilePathBytes({
+    required String htmlFilePath,
+    required PrintPdfConfiguration configuration,
+  }) async {
+    await FileUtils.appendStyleTagToHtmlFile(htmlFilePath);
+    final String generatedPdfFilePath = await _convertFromHtmlFilePath(
+      htmlFilePath,
+      configuration.printSize,
+      configuration.printOrientation,
+      configuration.margins,
+    );
+
+    return FileUtils.readAndDeleteOriginalFile(generatedPdfFilePath);
   }
 
   /// Assumes the invokeMethod call will return successfully
