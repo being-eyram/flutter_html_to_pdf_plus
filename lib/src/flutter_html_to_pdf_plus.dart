@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_html_to_pdf_plus/src/file_utils.dart';
+import 'package:path_provider/path_provider.dart'; // Added import
 
 import 'pdf_print_configuration.dart';
 import 'print_config_enums.dart';
@@ -18,21 +19,32 @@ class FlutterHtmlToPdf {
     required String content,
     required PrintPdfConfiguration configuration,
   }) async {
+    final Directory tempDir = await getTemporaryDirectory();
+    final String tempHtmlFileName =
+        'flutter_html_to_pdf_${DateTime.now().millisecondsSinceEpoch}.html';
     final File temporaryCreatedHtmlFile =
-        await FileUtils.createFileWithStringContent(
+        File('${tempDir.path}/$tempHtmlFileName');
+
+    await FileUtils.createFileWithStringContent(
       content,
-      configuration.htmlFilePath,
+      temporaryCreatedHtmlFile.path,
     );
     await FileUtils.appendStyleTagToHtmlFile(temporaryCreatedHtmlFile.path);
 
     final String generatedPdfFilePath = await _convertFromHtmlFilePath(
       temporaryCreatedHtmlFile.path,
-      configuration.printSize,
-      configuration.printOrientation,
-      configuration.margins,
+      configuration,
     );
 
-    temporaryCreatedHtmlFile.delete();
+    // Ensure the temporary HTML file is deleted even if errors occur later
+    try {
+      if (await temporaryCreatedHtmlFile.exists()) {
+        await temporaryCreatedHtmlFile.delete();
+      }
+    } catch (e) {
+      // Log or handle deletion error, but don't let it stop PDF processing
+      // print('Error deleting temporary HTML file: $e');
+    }
 
     return FileUtils.copyAndDeleteOriginalFile(
       generatedPdfFilePath,
@@ -47,21 +59,32 @@ class FlutterHtmlToPdf {
     required String content,
     required PrintPdfConfiguration configuration,
   }) async {
+    final Directory tempDir = await getTemporaryDirectory();
+    final String tempHtmlFileName =
+        'flutter_html_to_pdf_${DateTime.now().millisecondsSinceEpoch}.html';
     final File temporaryCreatedHtmlFile =
-        await FileUtils.createFileWithStringContent(
+        File('${tempDir.path}/$tempHtmlFileName');
+
+    await FileUtils.createFileWithStringContent(
       content,
-      configuration.htmlFilePath,
+      temporaryCreatedHtmlFile.path,
     );
     await FileUtils.appendStyleTagToHtmlFile(temporaryCreatedHtmlFile.path);
 
     final String generatedPdfFilePath = await _convertFromHtmlFilePath(
       temporaryCreatedHtmlFile.path,
-      configuration.printSize,
-      configuration.printOrientation,
-      configuration.margins,
+      configuration,
     );
 
-    temporaryCreatedHtmlFile.delete();
+    // Ensure the temporary HTML file is deleted even if errors occur later
+    try {
+      if (await temporaryCreatedHtmlFile.exists()) {
+        await temporaryCreatedHtmlFile.delete();
+      }
+    } catch (e) {
+      // Log or handle deletion error, but don't let it stop PDF processing
+      // print('Error deleting temporary HTML file: $e');
+    }
 
     return FileUtils.readAndDeleteOriginalFile(generatedPdfFilePath);
   }
@@ -75,9 +98,7 @@ class FlutterHtmlToPdf {
     await FileUtils.appendStyleTagToHtmlFile(htmlFile.path);
     final String generatedPdfFilePath = await _convertFromHtmlFilePath(
       htmlFile.path,
-      configuration.printSize,
-      configuration.printOrientation,
-      configuration.margins,
+      configuration,
     );
 
     return FileUtils.copyAndDeleteOriginalFile(
@@ -96,9 +117,7 @@ class FlutterHtmlToPdf {
     await FileUtils.appendStyleTagToHtmlFile(htmlFile.path);
     final String generatedPdfFilePath = await _convertFromHtmlFilePath(
       htmlFile.path,
-      configuration.printSize,
-      configuration.printOrientation,
-      configuration.margins,
+      configuration,
     );
 
     return FileUtils.readAndDeleteOriginalFile(generatedPdfFilePath);
@@ -113,9 +132,7 @@ class FlutterHtmlToPdf {
     await FileUtils.appendStyleTagToHtmlFile(htmlFilePath);
     final String generatedPdfFilePath = await _convertFromHtmlFilePath(
       htmlFilePath,
-      configuration.printSize,
-      configuration.printOrientation,
-      configuration.margins,
+      configuration,
     );
 
     return FileUtils.copyAndDeleteOriginalFile(
@@ -134,9 +151,7 @@ class FlutterHtmlToPdf {
     await FileUtils.appendStyleTagToHtmlFile(htmlFilePath);
     final String generatedPdfFilePath = await _convertFromHtmlFilePath(
       htmlFilePath,
-      configuration.printSize,
-      configuration.printOrientation,
-      configuration.margins,
+      configuration,
     );
 
     return FileUtils.readAndDeleteOriginalFile(generatedPdfFilePath);
@@ -145,27 +160,49 @@ class FlutterHtmlToPdf {
   /// Assumes the invokeMethod call will return successfully
   static Future<String> _convertFromHtmlFilePath(
     String htmlFilePath,
-    PrintSize printSize,
-    PrintOrientation printOrientation,
-    PdfPageMargin pageMargin,
+    PrintPdfConfiguration configuration,
   ) async {
-    int width = printSize
-        .getDimensionsInPixels[printOrientation.getWidthDimensionIndex];
-    int height = printSize
-        .getDimensionsInPixels[printOrientation.getHeightDimensionIndex];
+    int width;
+    int height;
+
+    if (configuration.printSize == PrintSize.Custom &&
+        configuration.customSize != null) {
+      width = configuration.customSize!.width;
+      height = configuration.customSize!.height;
+      // Ensure orientation is respected for custom sizes if dimensions are potentially swapped
+      // A common interpretation for custom size is that width and height are absolute,
+      // but if user provides portrait dimensions (e.g. 400x600) and selects Landscape,
+      // they might expect 600x400. This logic handles that.
+      if (configuration.printOrientation == PrintOrientation.Landscape &&
+          width < height) {
+        final temp = width;
+        width = height;
+        height = temp;
+      } else if (configuration.printOrientation == PrintOrientation.Portrait &&
+          width > height) {
+        final temp = width;
+        width = height;
+        height = temp;
+      }
+    } else {
+      width = configuration.printSize.getDimensionsInPixels[
+          configuration.printOrientation.getWidthDimensionIndex];
+      height = configuration.printSize.getDimensionsInPixels[
+          configuration.printOrientation.getHeightDimensionIndex];
+    }
 
     // Create the parameters map
     final Map<String, dynamic> params = {
       'htmlFilePath': htmlFilePath,
       'width': width,
       'height': height,
-      'printSize': printSize.printSizeKey,
-      'orientation': printOrientation.orientationKey,
+      'printSize': configuration.printSize.printSizeKey,
+      'orientation': configuration.printOrientation.orientationKey,
       'margins': [
-        pageMargin.left,
-        pageMargin.top,
-        pageMargin.right,
-        pageMargin.bottom,
+        configuration.margins.left,
+        configuration.margins.top,
+        configuration.margins.right,
+        configuration.margins.bottom,
       ],
     };
 

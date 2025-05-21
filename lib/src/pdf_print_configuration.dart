@@ -42,12 +42,7 @@ class PrintPdfConfiguration {
     this.printSize = PrintSize.A4,
     this.printOrientation = PrintOrientation.Portrait,
     this.customSize,
-  }) {
-    // Set the custom size if provided and printSize is Custom
-    if (printSize == PrintSize.Custom && customSize != null) {
-      setCustomSize(customSize!);
-    }
-  }
+  });
 
   /// Returns the final path for temporary Html File
   String get htmlFilePath => "$targetDirectory/$targetName.html";
