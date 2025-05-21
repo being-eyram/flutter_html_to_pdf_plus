@@ -38,8 +38,11 @@ class FlutterHtmlToPdfPlugin: FlutterPlugin, MethodCallHandler {
     val printSize = call.argument<String>("printSize")
     val orientation = call.argument<String>("orientation")
     val margins = call.argument<List<Int>>("margins")
+    val width = call.argument<Int>("width")
+    val height = call.argument<Int>("height")
 
-    HtmlToPdfConverter().convert(htmlFilePath!!, applicationContext, printSize!!, orientation!!, margins!!, object : HtmlToPdfConverter.Callback {
+    val converter = HtmlToPdfConverter()
+    val callback = object : HtmlToPdfConverter.Callback {
       override fun onSuccess(filePath: String) {
         result.success(filePath)
       }
@@ -47,6 +50,9 @@ class FlutterHtmlToPdfPlugin: FlutterPlugin, MethodCallHandler {
       override fun onFailure() {
         result.error("ERROR", "Unable to convert html to pdf document!", "")
       }
-    })
+    }
+    
+    // Pass width and height for custom size
+    converter.convert(htmlFilePath!!, applicationContext, printSize!!, orientation!!, margins!!, callback, width, height)
   }
 }

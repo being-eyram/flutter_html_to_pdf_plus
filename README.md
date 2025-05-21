@@ -2,72 +2,132 @@
 
 [![pub package](https://img.shields.io/pub/v/flutter_html_to_pdf_plus.svg)](https://pub.dartlang.org/packages/flutter_html_to_pdf_plus)
 
-Flutter plugin for generating PDF files from HTML
+Flutter plugin for generating PDF files from HTML content with support for custom document sizes, orientations, and margins. Works on both Android and iOS.
 
-### Usage
+## Features
 
-#### From a raw HTML content
+- Convert HTML content to PDF
+- Support for all standard paper sizes (A0-A10)
+- Custom document sizes with user-defined dimensions
+- Portrait and landscape orientations
+- Customizable page margins
+- Support for both Android and iOS
+- Support for web images and local images
+- Returns both File object and byte data
+
+## Usage
+
+### From a raw HTML content
 
 ```dart 
-var targetPath = "/your/sample/path";
-var targetFileName = "example_pdf_file"
+final targetDirectory = "/your/sample/path";
+final targetName = "example_pdf_file";
 
-var generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlContent(
+final generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlContent(
   content: htmlContent, 
-  configuration: PdfPrinterConfiguration(
-    targetPath: targetPath, 
-    targetFileName: targetFileName,
-    margins: PdfPrinterMargins(top: 10, bottom: 10, left: 10, right: 10),
-    orientation: PrintOrientation.Landscape,
+  configuration: PrintPdfConfiguration(
+    targetDirectory: targetDirectory, 
+    targetName: targetName,
+    margins: PdfPageMargin(top: 50, bottom: 50, left: 50, right: 50),
+    printOrientation: PrintOrientation.Landscape,
     printSize: PrintSize.A4
   ),
 );
 ```
 
-#### From an HTML file
+### From an HTML file
 ```dart
-var file = File("/sample_path/example.html");
-var generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlFile(
+final file = File("/sample_path/example.html");
+final generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlFile(
   htmlFile: file,
-  configuration: PdfPrinterConfiguration(
-    targetPath: targetPath, 
-    targetFileName: targetFileName,
-    margins: PdfPrinterMargins(top: 10, bottom: 10, left: 10, right: 10),
-    orientation: PrintOrientation.Landscape,
+  configuration: PrintPdfConfiguration(
+    targetDirectory: targetDirectory, 
+    targetName: targetName,
+    margins: PdfPageMargin(top: 50, bottom: 50, left: 50, right: 50),
+    printOrientation: PrintOrientation.Landscape,
     printSize: PrintSize.A4
   ),
 );
 ```
 
-#### From an HTML file path
+### From an HTML file path
 ```dart
-var filePath = "/sample_path/example.html";
-var generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlFilePath(
+final filePath = "/sample_path/example.html";
+final generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlFilePath(
   htmlFilePath: filePath,
-  configuration: PdfPrinterConfiguration(
-    targetPath: targetPath, 
-    targetFileName: targetFileName,
-    margins: PdfPrinterMargins(top: 10, bottom: 10, left: 10, right: 10),
-    orientation: PrintOrientation.Landscape,
+  configuration: PrintPdfConfiguration(
+    targetDirectory: targetDirectory, 
+    targetName: targetName,
+    margins: PdfPageMargin(top: 50, bottom: 50, left: 50, right: 50),
+    printOrientation: PrintOrientation.Landscape,
     printSize: PrintSize.A4
   ),
 );
 ```
 
-> /!\ Caveats : Customization of orientation is not supported on iOS. Any config will be ignored.
+### Using custom document size
 
-#### Images
-If your want to add local image from device to your **HTML** you need to pass path to image as ***src*** value.
+```dart
+// Create a configuration with custom size (width and height in pixels at 72 PPI)
+final configuration = PrintPdfConfiguration(
+  targetDirectory: targetDirectory,
+  targetName: targetName,
+  printSize: PrintSize.Custom,
+  customSize: CustomSize(width: 400, height: 600), // Custom dimensions in pixels (72 PPI)
+  printOrientation: PrintOrientation.Portrait,
+  margins: PdfPageMargin(top: 50, bottom: 50, left: 50, right: 50),
+);
+
+// Generate PDF with custom size
+final generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlContent(
+  content: htmlContent,
+  configuration: configuration,
+);
+```
+
+### Getting PDF as bytes
+
+```dart
+final pdfBytes = await FlutterHtmlToPdf.convertFromHtmlContentBytes(
+  content: htmlContent,
+  configuration: PrintPdfConfiguration(
+    targetDirectory: targetDirectory,
+    targetName: targetName,
+    printSize: PrintSize.A4,
+  ),
+);
+
+// Use the bytes as needed (e.g., upload to server, save to database)
+```
+
+### Images
+If you want to add local images from the device to your **HTML**, you need to pass the path to the image as the ***src*** value:
 
 ```html
-<img src="file:///storage/example/your_sample_image.png" alt="web-img">
-```
-or if you want to use the image ***File*** object
-```html
-<img src="${imageFile.path}" alt="web-img">
+<img src="file:///storage/example/your_sample_image.png" alt="local-img">
 ```
 
-Many images inside your document can significantly affect the final file size so we suggest to use [flutter_image_compress](https://github.com/OpenFlutter/flutter_image_compress) plugin to compress images before generating PDF.
+Or if you want to use an image ***File*** object:
+```html
+<img src="${imageFile.path}" alt="file-img">
+```
+
+Web images are also supported:
+```html
+<img src="https://example.com/image.jpg" alt="web-img">
+```
+
+**Note:** Many images inside your document can significantly affect the final file size. We suggest using [flutter_image_compress](https://github.com/OpenFlutter/flutter_image_compress) plugin to compress images before generating PDF.
+
+## Supported Paper Sizes
+
+- A0 - A10 standard sizes
+- Custom size with user-defined dimensions
+
+## Supported Orientations
+
+- Portrait
+- Landscape
 
 ## Contributing
 

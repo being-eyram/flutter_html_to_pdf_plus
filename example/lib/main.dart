@@ -21,9 +21,22 @@ class _MyAppState extends State<MyApp> {
   PrintSize? selectedPrintSize;
   PrintOrientation? selectedPrintOrientation;
 
+  // Custom size controller for width and height
+  final TextEditingController _widthController =
+      TextEditingController(text: "400");
+  final TextEditingController _heightController =
+      TextEditingController(text: "600");
+
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _widthController.dispose();
+    _heightController.dispose();
+    super.dispose();
   }
 
   Future<String> generateExampleDocument() async {
@@ -75,14 +88,33 @@ class _MyAppState extends State<MyApp> {
       File("$targetPath/$targetFileName.pdf").deleteSync();
     }
 
-    final generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlContent(
-      content: htmlContent,
-      configuration: PrintPdfConfiguration(
+    // Create configuration with custom size if selected
+    PrintPdfConfiguration configuration;
+
+    if (selectedPrintSize == PrintSize.Custom) {
+      // Parse width and height from text controllers
+      final int width = int.tryParse(_widthController.text) ?? 400;
+      final int height = int.tryParse(_heightController.text) ?? 600;
+
+      configuration = PrintPdfConfiguration(
+        targetDirectory: targetPath,
+        targetName: targetFileName,
+        printSize: PrintSize.Custom,
+        printOrientation: selectedPrintOrientation ?? PrintOrientation.Portrait,
+        customSize: CustomSize(width: width, height: height),
+      );
+    } else {
+      configuration = PrintPdfConfiguration(
         targetDirectory: targetPath,
         targetName: targetFileName,
         printSize: selectedPrintSize ?? PrintSize.A4,
         printOrientation: selectedPrintOrientation ?? PrintOrientation.Portrait,
-      ),
+      );
+    }
+
+    final generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlContent(
+      content: htmlContent,
+      configuration: configuration,
     );
     return generatedPdfFile.path;
   }
@@ -125,6 +157,35 @@ class _MyAppState extends State<MyApp> {
               onChanged: (value) => setState(() => selectedPrintSize = value),
             ),
             const SizedBox(height: 16),
+            // Show custom size inputs when Custom is selected
+            if (selectedPrintSize == PrintSize.Custom)
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _widthController,
+                      decoration: const InputDecoration(
+                        labelText: 'Width (px)',
+                        hintText: 'Enter width in pixels (72 PPI)',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextField(
+                      controller: _heightController,
+                      decoration: const InputDecoration(
+                        labelText: 'Height (px)',
+                        hintText: 'Enter height in pixels (72 PPI)',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+            if (selectedPrintSize == PrintSize.Custom)
+              const SizedBox(height: 16),
             ElevatedButton(
               child: const Text("Open Generated PDF Preview"),
               onPressed: () async {

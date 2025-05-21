@@ -34,23 +34,34 @@ class HtmlToPdfConverter {
         }
     }
 
-    fun createPdfFromWebView(webView: WebView, applicationContext: Context, printSize: String, orientation: String, margins: List<Int>, callback: Callback) {
+    fun createPdfFromWebView(webView: WebView, applicationContext: Context, printSize: String, orientation: String, margins: List<Int>, callback: Callback, width: Int? = null, height: Int? = null) {
         val path = applicationContext.filesDir
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             var mediaSize = PrintAttributes.MediaSize.ISO_A4
 
-            when (printSize) {
-                "A0" -> mediaSize = PrintAttributes.MediaSize.ISO_A0
-                "A1" -> mediaSize = PrintAttributes.MediaSize.ISO_A1
-                "A2" -> mediaSize = PrintAttributes.MediaSize.ISO_A2
-                "A3" -> mediaSize = PrintAttributes.MediaSize.ISO_A3
-                "A4" -> mediaSize = PrintAttributes.MediaSize.ISO_A4
-                "A5" -> mediaSize = PrintAttributes.MediaSize.ISO_A5
-                "A6" -> mediaSize = PrintAttributes.MediaSize.ISO_A6
-                "A7" -> mediaSize = PrintAttributes.MediaSize.ISO_A7
-                "A8" -> mediaSize = PrintAttributes.MediaSize.ISO_A8
-                "A9" -> mediaSize = PrintAttributes.MediaSize.ISO_A9
-                "A10" -> mediaSize = PrintAttributes.MediaSize.ISO_A10
+            // Handle custom size if provided
+            if (printSize == "CUSTOM" && width != null && height != null) {
+                // Create a custom media size with the provided dimensions
+                // Note: Android's PrintAttributes.MediaSize constructor requires dimensions in mils (1/1000 inch)
+                // Convert from pixels (72 PPI) to mils (1000 per inch) - multiply by 1000/72
+                val widthMils = (width * 1000.0 / 72.0).toInt()
+                val heightMils = (height * 1000.0 / 72.0).toInt()
+                mediaSize = PrintAttributes.MediaSize("CUSTOM", "Custom Size", widthMils, heightMils)
+            } else {
+                // Use standard sizes
+                when (printSize) {
+                    "A0" -> mediaSize = PrintAttributes.MediaSize.ISO_A0
+                    "A1" -> mediaSize = PrintAttributes.MediaSize.ISO_A1
+                    "A2" -> mediaSize = PrintAttributes.MediaSize.ISO_A2
+                    "A3" -> mediaSize = PrintAttributes.MediaSize.ISO_A3
+                    "A4" -> mediaSize = PrintAttributes.MediaSize.ISO_A4
+                    "A5" -> mediaSize = PrintAttributes.MediaSize.ISO_A5
+                    "A6" -> mediaSize = PrintAttributes.MediaSize.ISO_A6
+                    "A7" -> mediaSize = PrintAttributes.MediaSize.ISO_A7
+                    "A8" -> mediaSize = PrintAttributes.MediaSize.ISO_A8
+                    "A9" -> mediaSize = PrintAttributes.MediaSize.ISO_A9
+                    "A10" -> mediaSize = PrintAttributes.MediaSize.ISO_A10
+                }
             }
 
             when (orientation) {
