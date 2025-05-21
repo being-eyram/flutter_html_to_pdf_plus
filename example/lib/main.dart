@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
 import 'package:flutter_html_to_pdf_plus/flutter_html_to_pdf_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:open_filex/open_filex.dart';
+import 'package:open_filex/open_filex.dart' if (dart.library.html) 'package:open_filex/open_filex.dart';
 
 void main() {
   runApp(const MaterialApp(home: MyApp()));
@@ -190,8 +191,27 @@ class _MyAppState extends State<MyApp> {
               child: const Text("Open Generated PDF Preview"),
               onPressed: () async {
                 final path = await generateExampleDocument();
-
-                await OpenFilex.open(path);
+                
+                // Show a success message with the file path
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('PDF generated at: $path'),
+                    duration: const Duration(seconds: 5),
+                  ),
+                );
+                
+                // Try to open the file
+                try {
+                  await OpenFilex.open(path);
+                } catch (e) {
+                  // Show error message if file can't be opened
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Could not open the file: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
             ),
           ],
