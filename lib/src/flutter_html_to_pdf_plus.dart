@@ -168,7 +168,7 @@ class FlutterHtmlToPdf {
         pageMargin.bottom,
       ],
     };
-    
+
     return await _channel.invokeMethod(
       'convertHtmlToPdf',
       params,

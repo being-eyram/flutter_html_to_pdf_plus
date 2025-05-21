@@ -20,16 +20,18 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   PrintSize? selectedPrintSize;
   PrintOrientation? selectedPrintOrientation;
-  
+
   // Custom size controller for width and height
-  final TextEditingController _widthController = TextEditingController(text: "400");
-  final TextEditingController _heightController = TextEditingController(text: "600");
+  final TextEditingController _widthController =
+      TextEditingController(text: "400");
+  final TextEditingController _heightController =
+      TextEditingController(text: "600");
 
   @override
   void initState() {
     super.initState();
   }
-  
+
   @override
   void dispose() {
     _widthController.dispose();
@@ -88,12 +90,12 @@ class _MyAppState extends State<MyApp> {
 
     // Create configuration with custom size if selected
     PrintPdfConfiguration configuration;
-    
+
     if (selectedPrintSize == PrintSize.Custom) {
       // Parse width and height from text controllers
       final int width = int.tryParse(_widthController.text) ?? 400;
       final int height = int.tryParse(_heightController.text) ?? 600;
-      
+
       configuration = PrintPdfConfiguration(
         targetDirectory: targetPath,
         targetName: targetFileName,
@@ -109,7 +111,7 @@ class _MyAppState extends State<MyApp> {
         printOrientation: selectedPrintOrientation ?? PrintOrientation.Portrait,
       );
     }
-    
+
     final generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlContent(
       content: htmlContent,
       configuration: configuration,
