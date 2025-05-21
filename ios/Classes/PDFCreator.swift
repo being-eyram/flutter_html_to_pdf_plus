@@ -8,18 +8,15 @@ class PDFCreator {
      */
     class func create(printFormatter: UIPrintFormatter, width: Double, height: Double, orientation: String, margins: [Int]?) -> URL {
         
-        // assign the print formatter to the print page renderer
         let renderer = UIPrintPageRenderer()
         renderer.addPrintFormatter(printFormatter, startingAtPageAt: 0)
         
-        // assign paperRect and printableRect values
         let page = CGRect(x: 0, y: 0, width: width, height: height)
         let printable = CGRect(x: Double(margins![0]), y: Double(margins![1]), width: width - Double(margins![0]) - Double(margins![2]), height: height - Double(margins![1]) - Double(margins![3]))
 
         renderer.setValue(page, forKey: "paperRect")
         renderer.setValue(printable, forKey: "printableRect")
         
-        // create pdf context and draw each page
         let pdfData = NSMutableData()
         UIGraphicsBeginPDFContextToData(pdfData, .zero, nil)
         
