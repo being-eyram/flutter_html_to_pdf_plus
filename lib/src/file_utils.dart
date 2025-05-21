@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 class FileUtils {
   static Future<File> createFileWithStringContent(
@@ -13,6 +14,13 @@ class FileUtils {
     fileCopy.writeAsBytesSync(File.fromUri(fileOriginal.uri).readAsBytesSync());
     fileOriginal.delete();
     return fileCopy;
+  }
+
+  static Uint8List readAndDeleteOriginalFile(String generatedFilePath) {
+    final fileOriginal = File(generatedFilePath);
+    final bytes = File.fromUri(fileOriginal.uri).readAsBytesSync();
+    fileOriginal.delete().ignore();
+    return bytes;
   }
 
   static Future<void> appendStyleTagToHtmlFile(String htmlPath) async {
