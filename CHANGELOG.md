@@ -1,3 +1,13 @@
+# 0.3.0
+
+### New features
+
+- Support for desktop (macOS)
+
+### Bug fixes
+
+- Migrate Android to use Gradle 8 & kts
+
 # 0.2.0
 
 ### New features
