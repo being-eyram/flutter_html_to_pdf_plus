@@ -154,21 +154,24 @@ class FlutterHtmlToPdf {
     int height = printSize
         .getDimensionsInPixels[printOrientation.getHeightDimensionIndex];
 
+    // Create the parameters map
+    final Map<String, dynamic> params = {
+      'htmlFilePath': htmlFilePath,
+      'width': width,
+      'height': height,
+      'printSize': printSize.printSizeKey,
+      'orientation': printOrientation.orientationKey,
+      'margins': [
+        pageMargin.left,
+        pageMargin.top,
+        pageMargin.right,
+        pageMargin.bottom,
+      ],
+    };
+    
     return await _channel.invokeMethod(
       'convertHtmlToPdf',
-      <String, dynamic>{
-        'htmlFilePath': htmlFilePath,
-        'width': width,
-        'height': height,
-        'printSize': printSize.printSizeKey,
-        'orientation': printOrientation.orientationKey,
-        'margins': [
-          pageMargin.left,
-          pageMargin.top,
-          pageMargin.right,
-          pageMargin.bottom,
-        ],
-      },
+      params,
     ) as String;
   }
 }

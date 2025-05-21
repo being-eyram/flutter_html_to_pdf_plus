@@ -1,5 +1,25 @@
 // ignore_for_file: constant_identifier_names
 
+/// Custom size class for defining custom document dimensions in pixels (72 PPI)
+class CustomSize {
+  final int width;
+  final int height;
+
+  /// Create a custom size with width and height in pixels (72 PPI)
+  const CustomSize({
+    required this.width,
+    required this.height,
+  });
+}
+
+/// Global variable to store custom size
+CustomSize? _customSize;
+
+/// Set a custom size for PrintSize.Custom
+void setCustomSize(CustomSize size) {
+  _customSize = size;
+}
+
 enum PrintSize {
   A0,
   A1,
@@ -12,6 +32,7 @@ enum PrintSize {
   A8,
   A9,
   A10,
+  Custom,
 }
 
 extension PrintSizeExt on PrintSize {
@@ -40,6 +61,12 @@ extension PrintSizeExt on PrintSize {
         return [105, 147];
       case PrintSize.A10:
         return [74, 105];
+      case PrintSize.Custom:
+        if (_customSize != null) {
+          return [_customSize!.width, _customSize!.height];
+        }
+        // Default to A4 if no custom size is set
+        return [595, 842];
     }
   }
 
@@ -68,6 +95,8 @@ extension PrintSizeExt on PrintSize {
         return "A9";
       case PrintSize.A10:
         return "A10";
+      case PrintSize.Custom:
+        return "CUSTOM";
     }
   }
 }

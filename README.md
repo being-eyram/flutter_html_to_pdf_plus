@@ -54,8 +54,6 @@ var generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlFilePath(
 );
 ```
 
-> /!\ Caveats : Customization of orientation is not supported on iOS. Any config will be ignored.
-
 #### Images
 If your want to add local image from device to your **HTML** you need to pass path to image as ***src*** value.
 
